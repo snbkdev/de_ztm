@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from datetime import datetime
+from airflow.sensors.filesystem import FileSensor
 import random
 import os, csv
 
@@ -12,7 +13,7 @@ def generate_bookings(**context):
     ds = context["ds"]
     time_str = execution_date.strftime("%Y-%m-%d_%H%M")
     
-    file_path = "file_path"
+    file_path = ""
     
     num_bookings = random.randint(30, 50)
     bookings = []
@@ -58,17 +59,29 @@ with DAG(
         task_id='generate_bookings',
         python_callable=generate_bookings,
     )
+
+    wait_for_listings_file = FileSensor(
+        task_id = "wait_for_listings_file",
+        fs_conn_id = "local_fs",
+        filepath = "",
+        poke_interval = 30,
+        timeout = 600,
+    )
     
     spark_job = SparkSubmitOperator(
         task_id='process_listings_and_bookings',
         application=os.path.join(DAG_FOLDER, 'bookings_per_listing_spark.py'),
         name='listings_bookings_join',
         application_args=[
-            "--listings_file", "/file_path/listings.csv.gz",
-            "--bookings_file", "/file_path/bookings.csv",
-            "--output_path", "/file_path/examples/"  # ← убрали Jinja-шаблон
+            "--listings_file", "",
+            "--bookings_file", "",
+            "--output_path", ""
         ],
         conn_id='spark_booking',
     )
     
-    generate_bookings_task >> spark_job
+    # generate_bookings_task >> spark_job
+    # wait_for_listings_file >> spark_job
+
+    # generate_bookings_task >> wait_for_listings_file >> spark_job
+    [generate_bookings_task, wait_for_listings_file] >> spark_job
