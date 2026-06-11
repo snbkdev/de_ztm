@@ -17,12 +17,16 @@ def average_page_visits():
 
     def get_data_path():
         context = get_current_context()
-        execution_date = context["execution_date"]
+        execution_date = context["ds"]
         file_date = execution_date.strftime("%Y-%m-%d_%H")
         return f"/tmp/page_visits/{file_date}.json"
 
     @task
     def produce_page_visits_data():
+        
+        if random.random() < 0.5:
+            raise Exception("Job has failed")
+
         page_visits = [
             {"id": 1, "name": "Cozy Apartment", "price": 120, "page_visits": random.randint(0, 50)},
             {"id": 2, "name": "Luxury Condo", "price": 300, "page_visits": random.randint(0, 50)},
