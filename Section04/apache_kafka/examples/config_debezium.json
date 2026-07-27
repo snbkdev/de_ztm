@@ -1,0 +1,13 @@
+{
+    "name": "postgres-debezium-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "plugin.name": "pgoutput",
+        "database.hostname": "localhost",
+        "database.port": "5432",
+        "database.user": "postgres",
+        "database.password": "password",
+        "database.dbname": "onlineshop",
+        "topic.prefix": "postgres-"
+    }
+}
